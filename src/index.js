@@ -5,6 +5,7 @@ import App from './App';
 import { BrowserRouter } from 'react-router-dom';
 import { UserProvider } from "./contexts/user.context";
 
+
 const rootElement = document.getElementById('root');
 
 render(
