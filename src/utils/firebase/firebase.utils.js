@@ -9,16 +9,15 @@ import {
   signOut,
   onAuthStateChanged,
 } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, collection, writeBatch, query, getDocs } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBdhTPn3ij-aF8gC2jm8oFXNnEBzQ9Xl-w",
-  authDomain: "crwn-clothing-e0fc9.firebaseapp.com",
-  projectId: "crwn-clothing-e0fc9",
-  storageBucket: "crwn-clothing-e0fc9.appspot.com",
-  messagingSenderId: "1055119973059",
-  appId: "1:1055119973059:web:a11eb5c1bd063f688e6076",
-  measurementId: "G-RC63XGQF8V"
+  apiKey: "AIzaSyDHI1UTJKKJYwND2_Bopgzy5DwjLRSnh3s",
+  authDomain: "crwn-clothing-db-v2-8a43d.firebaseapp.com",
+  projectId: "crwn-clothing-db-v2-8a43d",
+  storageBucket: "crwn-clothing-db-v2-8a43d.appspot.com",
+  messagingSenderId: "590498475030",
+  appId: "1:590498475030:web:f06aeb73435ee05d00d937"
 };
 
 const firebaseApp = initializeApp(firebaseConfig);
@@ -33,11 +32,41 @@ export const auth = getAuth();
 export const signInWithGooglePopup = () => signInWithPopup(auth, googleProvider);
 export const signInWithGoogleRedirect = () => signInWithRedirect(auth, googleProvider);
 
-export const db = getFirestore()
+export const db = getFirestore();
+
+// method allows to store new documents on DB
+export const addCollectionAndDocuments = async (collectionKey, objectsToAdd) => {
+  const collectionRef = collection(db, collectionKey);
+  const batch = writeBatch(db);
+
+  objectsToAdd.forEach(object => {
+    const docRef = doc(collectionRef, object.title.toLowerCase());
+    batch.set(docRef, object);
+  })
+
+  await batch.commit();
+  console.log('done')
+}
+
+export const getCategoriesAndDocuments = async () => {
+  const collectionRef = collection(db, 'categories');
+  const q = query(collectionRef);
+
+  const querySnapshot = await getDocs(q);
+  const categoryMap = querySnapshot.docs.reduce((acc, docSnapshot) => {
+    const { title, items } = docSnapshot.data();
+    acc[title.toLowerCase()] = items;
+    return acc
+  }, {});
+console.log(categoryMap)
+  return categoryMap;
+}
 export const createUserDocumentFromAuth = async (userAuth, additionalInfo = {}) => {
   //create new database
   const userDocRef = doc(db, 'users', userAuth.uid );
   const userSnapshot = await getDoc(userDocRef);
+  // console.log('userDocRef', userDocRef)
+  // console.log('userSnapshot', userSnapshot)
 
   //if user data is not exist
   //create / set the document with the data from userAuth in my collection
