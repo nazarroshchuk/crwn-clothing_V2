@@ -20,7 +20,7 @@ const firebaseConfig = {
   appId: "1:590498475030:web:f06aeb73435ee05d00d937"
 };
 
-const firebaseApp = initializeApp(firebaseConfig);
+initializeApp(firebaseConfig);
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -45,7 +45,6 @@ export const addCollectionAndDocuments = async (collectionKey, objectsToAdd) => 
   })
 
   await batch.commit();
-  console.log('done')
 }
 
 export const getCategoriesAndDocuments = async () => {
@@ -53,20 +52,17 @@ export const getCategoriesAndDocuments = async () => {
   const q = query(collectionRef);
 
   const querySnapshot = await getDocs(q);
-  const categoryMap = querySnapshot.docs.reduce((acc, docSnapshot) => {
+  return querySnapshot.docs.reduce((acc, docSnapshot) => {
     const { title, items } = docSnapshot.data();
     acc[title.toLowerCase()] = items;
     return acc
   }, {});
-console.log(categoryMap)
-  return categoryMap;
 }
 export const createUserDocumentFromAuth = async (userAuth, additionalInfo = {}) => {
   //create new database
   const userDocRef = doc(db, 'users', userAuth.uid );
   const userSnapshot = await getDoc(userDocRef);
-  // console.log('userDocRef', userDocRef)
-  // console.log('userSnapshot', userSnapshot)
+
 
   //if user data is not exist
   //create / set the document with the data from userAuth in my collection
