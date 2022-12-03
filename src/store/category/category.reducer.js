@@ -1,4 +1,4 @@
-import { categoriesTypes } from "./category.types";
+import { categoriesActionTypes } from "./category.types";
 
 const CATEGORIES_INITIAL_STATE = {
   categories: [],
@@ -8,7 +8,7 @@ export const categoriesReducer = (state = CATEGORIES_INITIAL_STATE, action) => {
   const { type, payload } = action;
 
   switch (type) {
-    case categoriesTypes.SET_CATEGORIES:
+    case categoriesActionTypes.SET_CATEGORIES:
       return {
         ...state,
         categories: payload,
