@@ -1,4 +1,7 @@
 import { createAction } from "../../utils/reducer/reducer.utils";
 import { categoriesActionTypes } from "./category.types";
 
-export const setCategories = (categoriesArray) => createAction(categoriesActionTypes.SET_CATEGORIES, categoriesArray)
+export const fetchCategoriesStart = () => createAction(categoriesActionTypes.FETCH_CATEGORIES_START);
+export const fetchCategoriesSuccess = (categoriesArray) => createAction(categoriesActionTypes.FETCH_CATEGORIES_SUCCESS, categoriesArray);
+export const fetchCategoriesFailed = (error) => createAction(categoriesActionTypes.FETCH_CATEGORIES_FAILED, error);
+
