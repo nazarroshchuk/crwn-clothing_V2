@@ -1,6 +1,7 @@
-import { all, call, takeLatest, put } from "redux-saga/effects";
+import { all, call, takeLatest, put } from "typed-redux-saga/macro";
 import { USER_ACTIONS_TYPE } from "./user.types";
 import {
+  AdditionalInfo,
   createAuthUserWithEmailAndPassword,
   createUserDocumentFromAuth,
   getCurrentUser,
@@ -8,44 +9,58 @@ import {
   signInWithGooglePopup,
   signOutUser,
 } from "../../utils/firebase/firebase.utils";
-import { userActions } from "./user.actions";
+import {
+  EmailSighInStart,
+  SignUpSuccess,
+  SignUpUStart,
+  userActions,
+} from "./user.actions";
+import { User } from "firebase/auth";
 
-function* getSnapshotFromUserAuth(userAuth, additionalDetails) {
+function* getSnapshotFromUserAuth(
+  userAuth: User,
+  additionalDetails?: AdditionalInfo
+) {
   try {
-    const userSnapshot = yield call(
+    const userSnapshot = yield* call(
       createUserDocumentFromAuth,
       userAuth,
       additionalDetails
     );
-    yield put(
-      userActions.signInSuccess({ id: userSnapshot.id, ...userSnapshot.data() })
-    );
+    if (userSnapshot) {
+      yield put(
+        userActions.signInSuccess({
+          id: userSnapshot.id,
+          ...userSnapshot.data(),
+        })
+      );
+    }
   } catch (e) {
-    yield put(userActions.signInFailed(e));
+    yield put(userActions.signInFailed(e as Error));
   }
 }
 export function* isUserAuthenticated() {
   try {
-    const userAuth = yield call(getCurrentUser);
+    const userAuth = yield* call(getCurrentUser);
 
     if (!userAuth) return;
 
-    yield call(getSnapshotFromUserAuth, userAuth);
+    yield* call(getSnapshotFromUserAuth, userAuth);
   } catch (e) {
-    yield put(userActions.signInFailed(e));
+    yield* put(userActions.signInFailed(e as Error));
   }
 }
 
 export function* signInWithGoogle() {
   try {
     const { user } = yield call(signInWithGooglePopup);
-    yield call(getSnapshotFromUserAuth, user);
+    yield* call(getSnapshotFromUserAuth, user);
   } catch (e) {
-    yield put(userActions.signInFailed(e));
+    yield put(userActions.signInFailed(e as Error));
   }
 }
 
-export function* sighInWithEmail(action) {
+export function* sighInWithEmail(action: EmailSighInStart) {
   const {
     payload: { email, password },
   } = action;
@@ -55,13 +70,13 @@ export function* sighInWithEmail(action) {
       email,
       password
     );
-    yield call(getSnapshotFromUserAuth, user);
+    yield* call(getSnapshotFromUserAuth, user);
   } catch (e) {
-    yield put(userActions.signInFailed(e));
+    yield* put(userActions.signInFailed(e as Error));
   }
 }
 
-export function* signUp(action) {
+export function* signUp(action: SignUpUStart) {
   const {
     payload: { email, password, displayName },
   } = action;
@@ -71,28 +86,28 @@ export function* signUp(action) {
       email,
       password
     );
-    yield put(userActions.signUpSuccess(user, { displayName }));
+    yield* put(userActions.signUpSuccess(user, { displayName }));
   } catch (e) {
-    yield put(userActions.signUpFailed(e));
+    yield* put(userActions.signUpFailed(e as Error));
   }
 }
 
-export function* signInAfterSingUp(action) {
+export function* signInAfterSingUp(action: SignUpSuccess) {
   const { user, additionalDetails } = action.payload;
 
   try {
-    yield call(getSnapshotFromUserAuth, user, additionalDetails);
+    yield* call(getSnapshotFromUserAuth, user, additionalDetails);
   } catch (e) {
-    yield put(userActions.signUpFailed(e));
+    yield* put(userActions.signUpFailed(e as Error));
   }
 }
 
 export function* sighOut() {
   try {
-    yield call(signOutUser);
-    yield put(userActions.signOutSuccess());
+    yield* call(signOutUser);
+    yield* put(userActions.signOutSuccess());
   } catch (e) {
-    yield put(userActions.signOutFailed(e));
+    yield* put(userActions.signOutFailed(e as Error));
   }
 }
 export function* watchUserAction() {
@@ -104,8 +119,5 @@ export function* watchUserAction() {
   yield takeLatest(USER_ACTIONS_TYPE.SIGN_OUT_START, sighOut);
 }
 export function* userSagas() {
-  yield all([
-    call(watchUserAction),
-    // call(onGoogleSingInStart),
-  ]);
+  yield all([call(watchUserAction)]);
 }
